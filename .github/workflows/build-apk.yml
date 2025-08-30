@@ -10,22 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - uses: actions/checkout@v4
 
+      # 2️⃣ Set up JDK 17
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Grant permission for gradlew
-        run: chmod +x ./gradlew
+      # 3️⃣ Make gradlew executable if exists
+      - name: Ensure Gradle Wrapper is executable
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+          else
+            echo "Gradle wrapper not found, generating..."
+            ./gradlew wrapper
+          fi
 
+      # 4️⃣ Build Debug APK
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4   # ← v3 बदलून v4 केले
+      # 5️⃣ Build Release APK
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+
+      # 6️⃣ Upload Debug APK
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
         with:
           name: WebViewApp-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # 7️⃣ Upload Release APK
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: WebViewApp-release
+          path: app/build/outputs/apk/release/app-release.apk
